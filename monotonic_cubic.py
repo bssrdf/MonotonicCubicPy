@@ -4,10 +4,13 @@ Created on Fri Jul 29 23:40:17 2016
 
 @author: bzhao
 """
-import numpy as npdef cubic_mono(xi, yi, xnew, mono=False):
+import numpy as np
+from scipy import interpolate
+import matplotlib.pyplot as plt
+
+def cubic_mono(xi, yi, xnew, mono=False):
 
    ynew=np.zeros(xnew.shape)
-   print
    for n in range(0, xnew.shape[0]):
         i = np.searchsorted(xi, xnew[n])-1
         t = (xnew[n]-xi[i])/(xi[i+1]-xi[i])
@@ -30,10 +33,6 @@ import numpy as npdef cubic_mono(xi, yi, xnew, mono=False):
         ynew[n]= h00*yi[i] + h10*(xi[i+1]-xi[i])*s1 + h01*yi[i+1] + h11*(xi[i+1]-xi[i])*s2
         print n, t, h00, h01, h10, h11, ynew[n]
    return ynew
-
-from scipy import interpolate
-import matplotlib.pyplot as plt
-
 
 
 xi=np.array([7.99, 8.09, 8.19, 8.7, 9.2, 10.0, 12, 15, 20])
