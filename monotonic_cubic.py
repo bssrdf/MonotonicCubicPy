@@ -24,6 +24,12 @@ def cubic_mono(xi, yi, xnew, mono=False):
                 s2 = (yi[i+1]-yi[i])/(xi[i+1]-xi[i])
         else:
                 s2=0.5*((yi[i+2]-yi[i+1])/(xi[i+2]-xi[i+1])+(yi[i+1]-yi[i])/(xi[i+1]-xi[i]))
+        if mono:
+            dk = (yi[i+1]-yi[i])/(xi[i+1]-xi[i])
+            if dk*s1 <= 0.0:
+                s1 = 0.0
+            if dk*s2 <= 0.0:
+                s2 = 0.0
         t2 = t*t
         t3 = t2*t
         h00 = 2.0*t3-3.0*t2+1.0
@@ -32,11 +38,12 @@ def cubic_mono(xi, yi, xnew, mono=False):
         h11 = t3 - t2
         ynew[n]= h00*yi[i] + h10*(xi[i+1]-xi[i])*s1 + h01*yi[i+1] + h11*(xi[i+1]-xi[i])*s2
         #print n, t, h00, h01, h10, h11, ynew[n]
+        print n, xnew[n], ynew[n], s1, s2
    return ynew
 
 
-xi=np.array([7.99, 8.09, 8.19, 8.7, 9.2, 10.0, 12, 15, 20])
-yi=np.array([0.0, 2.76429e-5, 4.37498e-2, 0.169183, 0.469428, 0.943740, 0.998636, 
+xi=np.array([7.99, 8.09, 8.19, 8.7, 9.2, 10.0, 11.0, 12, 15, 20])
+yi=np.array([0.0, 2.76429e-5, 4.37498e-2, 0.169183, 0.469428, 0.943740, 0.8497, 0.998636, 
              0.999919, 0.999994])
 
 f1 = interpolate.interp1d(xi, yi, kind='cubic')
@@ -48,14 +55,16 @@ y2new=f2(xnew)
 y3new=f3(xnew)
 
 y4new= cubic_mono(xi, yi, xnew)
+y5new= cubic_mono(xi, yi, xnew, mono=True)
 
 plt.figure()
 
 plt.plot(xi, yi,'ko')
-plt.plot(xnew, y1new)
-plt.plot(xnew, y2new)
-plt.plot(xnew, y3new)
-plt.plot(xnew, y4new)
-#plt.ylim(0, 1.5)
+#plt.plot(xnew, y1new)
+plt.plot(xnew, y2new,'b')
+plt.plot(xnew, y3new,'g')
+#plt.plot(xnew, y4new,'r')
+plt.plot(xnew, y5new,'m')
+plt.ylim(0, 1.1)
 plt.xlim(7.9, 20)
 plt.show()
