@@ -30,6 +30,12 @@ def cubic_mono(xi, yi, xnew, mono=False):
                 s1 = 0.0
             if dk*s2 <= 0.0:
                 s2 = 0.0
+            alpha = s1 / dk
+            beta  = s2 / dk
+            if alpha > 3.0:
+                s1 = 3.0 * dk
+            if beta > 3.0:
+                s2 = 3.0 * dk                
         t2 = t*t
         t3 = t2*t
         h00 = 2.0*t3-3.0*t2+1.0
