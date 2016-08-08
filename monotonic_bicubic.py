@@ -19,6 +19,18 @@ def basis_func(t):
     h11 = t3 - t2
     return h00,h10,h01,h11
 
+def limit_tangent(dk, s1, s2):
+       if dk*s1 <= 0.0:
+           s1 = 0.0
+       if dk*s2 <= 0.0:
+           s2 = 0.0
+       alpha = s1 / dk
+       beta  = s2 / dk
+       if alpha > 3.0:
+           s1 = 3.0 * dk
+       if beta > 3.0:
+           s2 = 3.0 * dk                
+
 def interp_1d(t, i, xi, yi, mono=False):
     if i-1 < 0:
         s1=(yi[i+1]-yi[i])/(xi[i+1]-xi[i])
@@ -30,16 +42,7 @@ def interp_1d(t, i, xi, yi, mono=False):
         s2=0.5*((yi[i+2]-yi[i+1])/(xi[i+2]-xi[i+1])+(yi[i+1]-yi[i])/(xi[i+1]-xi[i]))
     if mono:
        dk = (yi[i+1]-yi[i])/(xi[i+1]-xi[i])
-       if dk*s1 <= 0.0:
-           s1 = 0.0
-       if dk*s2 <= 0.0:
-           s2 = 0.0
-       alpha = s1 / dk
-       beta  = s2 / dk
-       if alpha > 3.0:
-           s1 = 3.0 * dk
-       if beta > 3.0:
-           s2 = 3.0 * dk                
+       limit_tangent(dk, s1, s2)
     h00,h10,h01,h11=basis_func(t)
     ynew = h00*yi[i] + h10*(xi[i+1]-xi[i])*s1 + h01*yi[i+1] + h11*(xi[i+1]-xi[i])*s2
         #print n, t, h00, h01, h10, h11, ynew[n]
@@ -63,32 +66,18 @@ def bicubic_mono(xi, yi, zi, xnew, ynew, mono=False):
            if j+2 < yi.shape[0]:
                tmpjp2 = interp_1d(t, i, xi, zi[j+2,:], mono)
            r = (ynew[m,n]-yi[j])/(yi[j+1]-yi[j])
-           if j-1 < 0:
-           #s1=(yi[i+1]-yi[i])/(xi[i+1]-xi[i])
+           if j-1 < 0:           
                s1=(tmpjp1-tmpj)/(yi[j+1]-yi[j])
-           else:
-           #s1=0.5*((yi[i+1]-yi[i])/(xi[i+1]-xi[i])+ (yi[i]-yi[i-1])/(xi[i]-xi[i-1]))
+           else:           
                s1=0.5*((tmpjp1-tmpj)/(yi[j+1]-yi[j])+ (tmpj-tmpjm1)/(yi[j]-yi[j-1]))
-           if j == yi.shape[0]-2:
-           #s2 = (yi[i+1]-yi[i])/(xi[i+1]-xi[i])
+           if j == yi.shape[0]-2:           
                s2 = (tmpjp1-tmpj)/(yi[j+1]-yi[j])
-           else:
-           #s2=0.5*((yi[i+2]-yi[i+1])/(xi[i+2]-xi[i+1])+(yi[i+1]-yi[i])/(xi[i+1]-xi[i]))
+           else:           
                s2=0.5*((tmpjp2-tmpjp1)/(yi[j+2]-yi[j+1])+ (tmpjp1-tmpj)/(yi[j+1]-yi[j]))
            if mono:
                dk = (tmpjp1-tmpj)/(yi[j+1]-yi[j])
-               if dk*s1 <= 0.0:
-                   s1 = 0.0
-               if dk*s2 <= 0.0:
-                   s2 = 0.0
-               alpha = s1 / dk
-               beta  = s2 / dk
-               if alpha > 3.0:
-                   s1 = 3.0 * dk
-               if beta > 3.0:
-                   s2 = 3.0 * dk
-           h00,h10,h01,h11=basis_func(r)
-           #print h00, h10, h01, h11
+               limit_tangent(dk, s1, s2)               
+           h00,h10,h01,h11=basis_func(r)           
            znew[m,n]= h00*tmpj + h10*(yi[j+1]-yi[j])*s1 + h01*tmpjp1 + h11*(yi[j+1]-yi[j])*s2
    return znew
 
