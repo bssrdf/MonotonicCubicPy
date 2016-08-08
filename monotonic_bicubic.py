@@ -20,16 +20,23 @@ def basis_func(t):
     return h00,h10,h01,h11
 
 def limit_tangent(dk, s1, s2):
-       if dk*s1 <= 0.0:
-           s1 = 0.0
-       if dk*s2 <= 0.0:
-           s2 = 0.0
-       alpha = s1 / dk
-       beta  = s2 / dk
+   if dk*s1 <= 0.0:
+       t1 = 0.0
+   else:
+       alpha = s1 / dk           
        if alpha > 3.0:
-           s1 = 3.0 * dk
+           t1 = 3.0 * dk
+       else:
+           t1 = s1
+   if dk*s2 <= 0.0:
+       t2 = 0.0
+   else:
+       beta  = s2 / dk    
        if beta > 3.0:
-           s2 = 3.0 * dk                
+           t2 = 3.0 * dk               
+       else:
+           t2 = s2
+   return t1, t2
 
 def interp_1d(t, i, xi, yi, mono=False):
     if i-1 < 0:
@@ -42,9 +49,12 @@ def interp_1d(t, i, xi, yi, mono=False):
         s2=0.5*((yi[i+2]-yi[i+1])/(xi[i+2]-xi[i+1])+(yi[i+1]-yi[i])/(xi[i+1]-xi[i]))
     if mono:
        dk = (yi[i+1]-yi[i])/(xi[i+1]-xi[i])
-       limit_tangent(dk, s1, s2)
+       t1,t2=limit_tangent(dk, s1, s2)
+    else:
+       t1 = s1
+       t2 = s2
     h00,h10,h01,h11=basis_func(t)
-    ynew = h00*yi[i] + h10*(xi[i+1]-xi[i])*s1 + h01*yi[i+1] + h11*(xi[i+1]-xi[i])*s2
+    ynew = h00*yi[i] + h10*(xi[i+1]-xi[i])*t1 + h01*yi[i+1] + h11*(xi[i+1]-xi[i])*t2
         #print n, t, h00, h01, h10, h11, ynew[n]
         #print n, xnew[n], ynew[n], s1, s2
     return ynew    
@@ -74,18 +84,25 @@ def bicubic_mono(xi, yi, zi, xnew, ynew, mono=False):
                s2 = (tmpjp1-tmpj)/(yi[j+1]-yi[j])
            else:           
                s2=0.5*((tmpjp2-tmpjp1)/(yi[j+2]-yi[j+1])+ (tmpjp1-tmpj)/(yi[j+1]-yi[j]))
-           if mono:
+           if mono:               
                dk = (tmpjp1-tmpj)/(yi[j+1]-yi[j])
-               limit_tangent(dk, s1, s2)               
+               t1,t2=limit_tangent(dk, s1, s2)               
+           else:
+               t1 = s1
+               t2 = s2
            h00,h10,h01,h11=basis_func(r)           
-           znew[m,n]= h00*tmpj + h10*(yi[j+1]-yi[j])*s1 + h01*tmpjp1 + h11*(yi[j+1]-yi[j])*s2
+           znew[m,n]= h00*tmpj + h10*(yi[j+1]-yi[j])*t1 + h01*tmpjp1 + h11*(yi[j+1]-yi[j])*t2                          
+           #if abs(znew[m,n]-0.994465924832) < 1.e-6:
+            #   print m, n, t, r, znew[m,n], h00, h10, h01, h11, tmpj, tmpjp1
+             #  print m, n, t, r, xnew[m,n], xi[i], ynew[m,n], yi[j]
+              # print m, n, j, i, zi[j+1,i], zi[j+1,i+1]
    return znew
 
 
 xi=np.arange(0, 5.2, 0.2)
-yi=np.arange(0, 5.2, 0.2)
+yi=np.arange(0.6, 5.2, 0.2)
 xin=np.arange(0.1, 5.0, 0.05)
-yin=np.arange(0.1, 5.0, 0.1)
+yin=np.arange(1.1, 5.0, 0.1)
 
 
 
@@ -94,10 +111,10 @@ xn,yn=np.meshgrid(xin, yin)
 
 zi = np.sin(x)*np.cos(y)
 
-f1=interpolate.RectBivariateSpline(xi, yi, zi)
+#f1=interpolate.RectBivariateSpline(xi, yi, zi)
 f2=interpolate.interp2d(xi, yi, zi, kind='cubic')
-z1 = f1(xin, yin)
-z1 = z1.T
+#z1 = f1(xin, yin)
+#z1 = z1.T
 z2 = f2(xin, yin)
 
 z3 = bicubic_mono(xi, yi, zi, xn, yn)
@@ -121,4 +138,13 @@ plt.title('bicubic', fontsize=15)
 plt.subplot(2,2,4)
 plt.pcolormesh(xn, yn, z4)
 plt.title('monotonic bicubic', fontsize=15)
+plt.show()
+
+plt.figure()
+plt.subplot(2,2,1)
+plt.pcolormesh(xn, yn, z2-z4)
+plt.clim(-1.e-5, 1.e-5)
+plt.subplot(2,2,2)
+plt.pcolormesh(xn, yn, z3-z4)
+plt.clim(-1.e-5, 1.e-5)
 plt.show()
