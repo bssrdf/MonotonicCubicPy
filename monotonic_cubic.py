@@ -51,9 +51,9 @@ def cubic_mono(xi, yi, xnew, mono=False):
 xi=np.array([7.99, 8.09, 8.19, 8.7, 9.2, 10.0, 11.0, 12, 15, 20])
 yi=np.array([0.0, 2.76429e-5, 4.37498e-2, 0.169183, 0.469428, 0.943740, 0.8497, 0.998636, 
              0.999919, 0.999994])
-
+yi1= np.array([9.5874481E-03, 4.6176407E-02, 1.1553155E-03, 1.5909404E-03])
 f1 = interpolate.interp1d(xi, yi, kind='cubic')
-f2 = interpolate.interp1d(xi, yi)
+f2 = interpolate.interp1d(xi, yi
 f3 = interpolate.PchipInterpolator(xi, yi)
 xnew=np.arange(8, 20, 0.1)
 y1new=f1(xnew)
