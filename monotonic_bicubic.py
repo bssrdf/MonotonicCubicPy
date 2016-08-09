@@ -19,24 +19,45 @@ def basis_func(t):
     h11 = t3 - t2
     return h00,h10,h01,h11
 
-def limit_tangent(dk, s1, s2):
-   if dk*s1 <= 0.0:
+def limit_tangent(dk1, dk2, s1, s2):
+   if dk1*s1 <= 0.0:
        t1 = 0.0
    else:
-       alpha = s1 / dk           
+       alpha = s1 / dk1           
        if alpha > 3.0:
-           t1 = 3.0 * dk
+           t1 = 3.0 * dk1
        else:
            t1 = s1
-   if dk*s2 <= 0.0:
+   if dk2*s2 <= 0.0:
        t2 = 0.0
    else:
-       beta  = s2 / dk    
+       beta  = s2 / dk2    
        if beta > 3.0:
-           t2 = 3.0 * dk               
+           t2 = 3.0 * dk2               
        else:
            t2 = s2
    return t1, t2
+   
+def limit_tangent_hyman(dk1, dk2, s):
+   if dk1*dk2 <= 0.0:
+       t = 0.0
+   else:
+       if s >= 0.0:
+           if np.abs(dk1) < np.abs(dk2):
+               t = 3.0*np.abs(dk1)
+           else:
+               t = 3.0*np.abs(dk2)
+           if s < t:
+               t = s
+       else:
+           if np.abs(dk1) < np.abs(dk2):
+               t = -3.0*np.abs(dk1)
+           else:
+               t = -3.0*np.abs(dk2)
+           if s > t:
+               t = s
+   return t   
+   
 
 def interp_1d(t, i, xi, yi, mono=False):
     if i-1 < 0:
@@ -48,8 +69,19 @@ def interp_1d(t, i, xi, yi, mono=False):
     else:
         s2=0.5*((yi[i+2]-yi[i+1])/(xi[i+2]-xi[i+1])+(yi[i+1]-yi[i])/(xi[i+1]-xi[i]))
     if mono:
-       dk = (yi[i+1]-yi[i])/(xi[i+1]-xi[i])
-       t1,t2=limit_tangent(dk, s1, s2)
+       if i-1 < 0:
+            dk1=(yi[i+1]-yi[i])/(xi[i+1]-xi[i])
+       else:            
+            dk1 = (yi[i]-yi[i-1])/(xi[i]-xi[i-1])
+       dk2 = (yi[i+1]-yi[i])/(xi[i+1]-xi[i])
+       t1=limit_tangent_hyman(dk1, dk2, s1)    
+       dk1= (yi[i+1]-yi[i])/(xi[i+1]-xi[i])
+       if i == xi.shape[0]-2:
+           dk2 = (yi[i+1]-yi[i])/(xi[i+1]-xi[i])
+       else:
+           dk2 = (yi[i+2]-yi[i+1])/(xi[i+2]-xi[i+1])
+       #t1,t2=limit_tangent(dk1, dk1, s1, s2)
+       t2=limit_tangent_hyman(dk1, dk2, s2)    
     else:
        t1 = s1
        t2 = s2
@@ -85,8 +117,19 @@ def bicubic_mono(xi, yi, zi, xnew, ynew, mono=False):
            else:           
                s2=0.5*((tmpjp2-tmpjp1)/(yi[j+2]-yi[j+1])+ (tmpjp1-tmpj)/(yi[j+1]-yi[j]))
            if mono:               
-               dk = (tmpjp1-tmpj)/(yi[j+1]-yi[j])
-               t1,t2=limit_tangent(dk, s1, s2)               
+               if j-1 < 0:           
+                   dk1 = (tmpjp1-tmpj)/(yi[j+1]-yi[j])
+               else:
+                   dk1 = (tmpj-tmpjm1)/(yi[j]-yi[j-1])
+               dk2 = (tmpjp1-tmpj)/(yi[j+1]-yi[j])    
+               t1=limit_tangent_hyman(dk1, dk2, s1)                   
+               dk1 = (tmpjp1-tmpj)/(yi[j+1]-yi[j])
+               if j == yi.shape[0]-2:           
+                   dk2 = (tmpjp1-tmpj)/(yi[j+1]-yi[j])
+               else:
+                   dk2 = (tmpjp2-tmpjp1)/(yi[j+2]-yi[j+1])
+               t2=limit_tangent_hyman(dk1, dk2, s2)                   
+               #t1,t2=limit_tangent(dk1, dk1, s1, s2)               
            else:
                t1 = s1
                t2 = s2
@@ -148,3 +191,17 @@ plt.subplot(2,2,2)
 plt.pcolormesh(xn, yn, z3-z4)
 plt.clim(-1.e-5, 1.e-5)
 plt.show()
+
+plt.figure()
+plt.plot(z2[:,30],'k-')
+plt.plot(z3[:,30],'g-')
+plt.plot(z4[:,30],'r-')
+plt.show()
+
+plt.figure()
+plt.plot(z2[:,30]-z4[:,30],'k-')
+plt.plot(z3[:,30]-z4[:,30],'g-')
+plt.show()
+
+
+
