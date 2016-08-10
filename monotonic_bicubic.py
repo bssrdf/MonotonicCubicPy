@@ -63,11 +63,17 @@ def interp_1d(t, i, xi, yi, mono=False):
     if i-1 < 0:
         s1=(yi[i+1]-yi[i])/(xi[i+1]-xi[i])
     else:
-        s1=0.5*((yi[i+1]-yi[i])/(xi[i+1]-xi[i])+ (yi[i]-yi[i-1])/(xi[i]-xi[i-1]))
+        h1 = xi[i]-xi[i-1]
+        h2 = xi[i+1]-xi[i]         
+        s1=((yi[i+1]-yi[i])/h2*h1 + (yi[i]-yi[i-1])/h1*h2)/(h1+h2)
+        #s1=0.5*((yi[i+1]-yi[i])/(xi[i+1]-xi[i])+ (yi[i]-yi[i-1])/(xi[i]-xi[i-1]))
     if i == xi.shape[0]-2:
         s2 = (yi[i+1]-yi[i])/(xi[i+1]-xi[i])
     else:
-        s2=0.5*((yi[i+2]-yi[i+1])/(xi[i+2]-xi[i+1])+(yi[i+1]-yi[i])/(xi[i+1]-xi[i]))
+        h1 = xi[i+1]-xi[i]
+        h2 = xi[i+2]-xi[i+1]            
+        s2=((yi[i+2]-yi[i+1])/h2*h1+(yi[i+1]-yi[i])/h1*h2)/(h1+h2)
+        #s2=0.5*((yi[i+2]-yi[i+1])/(xi[i+2]-xi[i+1])+(yi[i+1]-yi[i])/(xi[i+1]-xi[i]))
     if mono:
        if i-1 < 0:
             dk1=(yi[i+1]-yi[i])/(xi[i+1]-xi[i])
@@ -110,12 +116,18 @@ def bicubic_mono(xi, yi, zi, xnew, ynew, mono=False):
            r = (ynew[m,n]-yi[j])/(yi[j+1]-yi[j])
            if j-1 < 0:           
                s1=(tmpjp1-tmpj)/(yi[j+1]-yi[j])
-           else:           
-               s1=0.5*((tmpjp1-tmpj)/(yi[j+1]-yi[j])+ (tmpj-tmpjm1)/(yi[j]-yi[j-1]))
+           else:  
+               h1 = yi[j]-yi[j-1]
+               h2 = yi[j+1]-yi[j]
+               s1=((tmpjp1-tmpj)/h2*h1+(tmpj-tmpjm1)/h1*h2)/(h1+h2)
+               #s1=0.5*((tmpjp1-tmpj)/(yi[j+1]-yi[j])+ (tmpj-tmpjm1)/(yi[j]-yi[j-1]))
            if j == yi.shape[0]-2:           
                s2 = (tmpjp1-tmpj)/(yi[j+1]-yi[j])
            else:           
-               s2=0.5*((tmpjp2-tmpjp1)/(yi[j+2]-yi[j+1])+ (tmpjp1-tmpj)/(yi[j+1]-yi[j]))
+               h1 = yi[j+1]-yi[j]
+               h2 = yi[j+2]-yi[j+1]
+               s2=((tmpjp2-tmpjp1)/h2*h1+ (tmpjp1-tmpj)/h1*h2)/(h1+h2)
+               #s2=0.5*((tmpjp2-tmpjp1)/(yi[j+2]-yi[j+1])+ (tmpjp1-tmpj)/(yi[j+1]-yi[j]))
            if mono:               
                if j-1 < 0:           
                    dk1 = (tmpjp1-tmpj)/(yi[j+1]-yi[j])
